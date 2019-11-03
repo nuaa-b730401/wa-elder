@@ -2,17 +2,18 @@ package org.nuaa.wa.waelder.controller;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.nuaa.wa.waelder.aop.Permission;
 import org.nuaa.wa.waelder.entity.Response;
 import org.nuaa.wa.waelder.entity.UserEntity;
 import org.nuaa.wa.waelder.service.UserService;
 import org.nuaa.wa.waelder.util.constant.LogLevel;
+import org.nuaa.wa.waelder.util.constant.PermissionConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @Name: UserController
@@ -50,9 +51,22 @@ public class UserController {
     }
 
     @PostMapping("/update-password")
+    @Permission("login")
     @ApiOperation(value = "update user password", notes = "修改密码", httpMethod = "POST")
     public Response updateUserPassword(long id, String oPass, String nPass) {
         return userService.updateUserPassword(id, oPass, nPass);
+    }
+
+    @PostMapping("/login/phone")
+    @ApiOperation(value = "login by phone", notes = "使用手机号登录", httpMethod = "POST")
+    public Response signInByPhone(UserEntity user, HttpServletResponse response) {
+        return userService.signInByPhoneNumber(user, response);
+    }
+
+    @GetMapping("/{id}")
+    @ApiOperation(value = "get user by id", notes = "获取指定用户信息", httpMethod = "GET")
+    public Response getUserById(@PathVariable(value = "id") long id) {
+        return userService.getUserInfo(id);
     }
 
 }

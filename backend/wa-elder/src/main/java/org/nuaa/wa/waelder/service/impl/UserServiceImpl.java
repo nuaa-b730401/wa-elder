@@ -7,18 +7,20 @@ import org.nuaa.wa.waelder.entity.Response;
 import org.nuaa.wa.waelder.entity.UserEntity;
 import org.nuaa.wa.waelder.repository.UserRepository;
 import org.nuaa.wa.waelder.service.UserService;
+import org.nuaa.wa.waelder.util.CookieUtil;
 import org.nuaa.wa.waelder.util.PasswordEncryptUtil;
 import org.nuaa.wa.waelder.util.TokenGenerator;
 import org.nuaa.wa.waelder.util.cache.PhoneCacheFactory;
 import org.nuaa.wa.waelder.util.constant.LogLevel;
+import org.nuaa.wa.waelder.util.constant.PermissionConstant;
 import org.nuaa.wa.waelder.util.constant.StatusConstant;
 import org.nuaa.wa.waelder.vo.UserVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import java.util.Optional;
 
@@ -41,8 +43,37 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
 
     @Override
-    public Response signInByPhoneNumber(UserEntity user) {
-        return null;
+    public Response signInByPhoneNumber(UserEntity user, HttpServletResponse response) {
+        try {
+            UserEntity userInDB = userRepository.findByPhone(user.getPhone()).orElseGet(() -> null);
+            // 检查用户是否存在
+            if (userInDB == null) {
+                logger.warn("phone({}) not exists", user.getPhone());
+                return new Response(Response.SERVER_DATA_NOT_FOUND_ERROR, "user not exists");
+            }
+
+            // 检查用户状态
+            if (userInDB.getStatus() != StatusConstant.USER_NORMAL_STATUS) {
+                logger.warn("phone({}) not activate, status is {}", user.getPhone(), userInDB.getStatus());
+            }
+
+            // 检查密码
+            if (!PasswordEncryptUtil.validPassword(user.getPassword(), userInDB.getPassword())) {
+                logger.warn("phone({}) login with wrong password", user.getPhone());
+                return new Response(Response.INPUT_ERROR_CODE, "phone or password wrong");
+            }
+
+            // 返回用户token
+            String userToken = TokenGenerator.getInstance().encrypt(
+                    String.format("%d.%d", user.getId(), System.currentTimeMillis())
+            );
+
+            CookieUtil.addCookie(PermissionConstant.TOKEN_HEADER, userToken,
+                    PermissionConstant.COOKIE_EXPIRE_TIME, response);
+        } catch (Exception ex) {
+            logger.warn("login by phone fail, phone : {}, msg : {}", user.getPhone(), ex.getMessage());
+        }
+        return new Response(Response.SUCCESS_CODE, "login success");
     }
 
     @Override
@@ -53,7 +84,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Response sendSmsVerifyCode(String phone) {
         PhoneCacheFactory cacheFactory = PhoneCacheFactory.getInstance();
-        String code = TokenGenerator.generateSmsCode();
+        String code = TokenGenerator.getInstance().generateSmsCode();
         // 缓存验证码
         cacheFactory.set(phone, code);
         // 发送验证码
@@ -157,5 +188,43 @@ public class UserServiceImpl implements UserService {
         }
 
         return new Response(Response.SUCCESS_CODE, "update password success");
+    }
+
+    @Override
+    public Response getUserInfo(long id) {
+        UserEntity user = userRepository.findById(id).orElseGet(() -> null);
+
+        if (user == null) {
+            logger.warn("user {} not found", id);
+            return new Response(Response.SERVER_DATA_NOT_FOUND_ERROR, "user not exists");
+        }
+
+
+        return null;
+    }
+
+    @Override
+    public Response getUserList(int page, int limit) {
+        return null;
+    }
+
+    @Override
+    public Response getUserLockedList(int page, int limit) {
+        return null;
+    }
+
+    @Override
+    public Response getUserUnActivatedList(int page, int limit) {
+        return null;
+    }
+
+    @Override
+    public Response lockUser(long id) {
+        return null;
+    }
+
+    @Override
+    public Response unlockUser(long id) {
+        return null;
     }
 }

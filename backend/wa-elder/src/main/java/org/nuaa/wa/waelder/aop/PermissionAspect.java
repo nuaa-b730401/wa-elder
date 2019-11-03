@@ -62,7 +62,7 @@ public class PermissionAspect {
         }
 
         String token = targetCookie.getValue();
-        String userInfo = TokenGenerator.decrypt(token);
+        String userInfo = TokenGenerator.getInstance().decrypt(token);
         if (!userInfo.contains(".")) {
             throw new PermissionException("has no permission, invalid token " + token);
         }

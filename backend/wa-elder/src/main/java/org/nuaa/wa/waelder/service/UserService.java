@@ -3,6 +3,8 @@ package org.nuaa.wa.waelder.service;
 import org.nuaa.wa.waelder.entity.Response;
 import org.nuaa.wa.waelder.entity.UserEntity;
 
+import javax.servlet.http.HttpServletResponse;
+
 /**
  * @Name: UserService
  * @Description: TODO
@@ -11,7 +13,7 @@ import org.nuaa.wa.waelder.entity.UserEntity;
  * @Version: 1.0
  */
 public interface UserService {
-    Response signInByPhoneNumber(UserEntity user);
+    Response signInByPhoneNumber(UserEntity user, HttpServletResponse response);
 
     Response signInByWechat(UserEntity user);
 
@@ -26,4 +28,16 @@ public interface UserService {
     Response setUserPassword(UserEntity user);
 
     Response updateUserPassword(long id, String oldPassword, String newPassword);
+
+    Response getUserInfo(long id);
+
+    Response getUserList(int page, int limit);
+
+    Response getUserLockedList(int page, int limit);
+
+    Response getUserUnActivatedList(int page, int limit);
+
+    Response lockUser(long id);
+
+    Response unlockUser(long id);
 }

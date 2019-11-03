@@ -49,7 +49,7 @@ public class HelloController {
     public Response login(HttpServletRequest request, HttpServletResponse response) throws Exception {
         String username = "tomax";
         CookieUtil.addCookie(PermissionConstant.TOKEN_HEADER,
-                TokenGenerator.encrypt(username.concat(".").concat(String.valueOf(System.currentTimeMillis()))),
+                TokenGenerator.getInstance().encrypt(username.concat(".").concat(String.valueOf(System.currentTimeMillis()))),
                 PermissionConstant.COOKIE_EXPIRE_TIME, response);
         return new Response();
     }

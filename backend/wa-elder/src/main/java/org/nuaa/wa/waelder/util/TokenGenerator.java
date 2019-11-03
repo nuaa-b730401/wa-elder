@@ -2,6 +2,9 @@ package org.nuaa.wa.waelder.util;
 
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.nuaa.wa.waelder.util.constant.ConfigConstant;
+import org.nuaa.wa.waelder.util.constant.LogLevel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.crypto.Cipher;
 import java.security.*;
@@ -19,18 +22,29 @@ import java.util.Random;
  * @Version: 1.0
  */
 public class TokenGenerator {
-    private volatile static String pubKey = "";
-    private volatile static String priKey = "";
+    private String pubKey = "";
+    private String priKey = "";
+    private Random random;
+    private static Logger logger = LoggerFactory.getLogger(LogLevel.SERVICE);
 
-    private static Random random = new Random();
-
-    static {
+    private TokenGenerator() {
         try {
             genKeyPair();
+            random = new Random();
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            logger.error("gen key pair fail", e);
         }
     }
+
+    private static final class Holder {
+        public static final TokenGenerator INSTANCE = new TokenGenerator();
+    }
+
+    public static TokenGenerator getInstance() {
+        return Holder.INSTANCE;
+    }
+
+
 
     public static void main(String[] args) throws Exception {
 //        //生成公钥和私钥
@@ -43,7 +57,7 @@ public class TokenGenerator {
 //        System.out.println("还原后的字符串为:" + messageDe);
 
         for (int i = 0; i <= 100; i++) {
-            System.out.println(generateSmsCode());
+            System.out.println(TokenGenerator.getInstance().generateSmsCode());
         }
     }
 
@@ -51,7 +65,7 @@ public class TokenGenerator {
      * 随机生成密钥对
      * @throws NoSuchAlgorithmException
      */
-    private static void genKeyPair() throws NoSuchAlgorithmException {
+    private void genKeyPair() throws NoSuchAlgorithmException {
         // KeyPairGenerator类用于生成公钥和私钥对，基于RSA算法生成对象
         KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("RSA");
         // 初始化密钥对生成器，密钥大小为96-1024位
@@ -74,15 +88,14 @@ public class TokenGenerator {
      * @throws Exception
      *             加密过程中的异常信息
      */
-    public static String encrypt(String str) throws Exception{
+    public String encrypt(String str) throws Exception{
         //base64编码的公钥
         byte[] decoded = Base64.decodeBase64(pubKey);
         RSAPublicKey pubKey = (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(decoded));
         //RSA加密
         Cipher cipher = Cipher.getInstance("RSA");
         cipher.init(Cipher.ENCRYPT_MODE, pubKey);
-        String outStr = Base64.encodeBase64String(cipher.doFinal(str.getBytes("UTF-8")));
-        return outStr;
+        return Base64.encodeBase64String(cipher.doFinal(str.getBytes("UTF-8")));
     }
 
     /**
@@ -94,7 +107,7 @@ public class TokenGenerator {
      * @throws Exception
      *             解密过程中的异常信息
      */
-    public static String decrypt(String str) throws Exception{
+    public String decrypt(String str) throws Exception{
         //64位解码加密后的字符串
         byte[] inputByte = Base64.decodeBase64(str.getBytes("UTF-8"));
         //base64编码的私钥
@@ -107,7 +120,7 @@ public class TokenGenerator {
         return outStr;
     }
 
-    public static String generateSmsCode() {
+    public String generateSmsCode() {
         StringBuilder builder = new StringBuilder();
         for (int i = 1; i <= 6; i++) {
             builder.append(random.nextInt(10));

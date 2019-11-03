@@ -14,4 +14,7 @@ public class UserVo {
     private long id;
     private String phone;
     private String wechatId;
+    private String username;
+    private String sex;
+    private String address;
 }
