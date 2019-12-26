@@ -31,6 +31,8 @@ public interface UserService {
 
     Response getUserInfo(long id);
 
+    Response updateUserInfo(UserEntity user);
+
     Response getUserList(int page, int limit);
 
     Response getUserLockedList(int page, int limit);
@@ -40,4 +42,8 @@ public interface UserService {
     Response lockUser(long id);
 
     Response unlockUser(long id);
+
+    Response addUser(UserEntity user);
+
+    Response queryUserDeviceInfo(long userId);
 }

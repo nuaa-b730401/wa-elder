@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @RestController
 @RequestMapping("/")
-@Api("hello rest")
+//@Api("hello rest")
 public class HelloController {
     private static final Logger logger = LoggerFactory.getLogger("hello");
 
@@ -37,7 +37,7 @@ public class HelloController {
     private SmsClient smsClient;
 
     @Permission("login")
-    @ApiOperation(value = "hello user", notes = "input user name")
+//    @ApiOperation(value = "hello user", notes = "input user name")
     @GetMapping("hello/{name}")
     @ServiceLog(name = "sayHello", description = "say hello to user")
     public Response sayHello(@PathVariable(name = "name") String name) {
@@ -60,4 +60,9 @@ public class HelloController {
         return new Response();
     }
 
+    @GetMapping("/notify")
+    public Response not() {
+        smsClient.sendAlarmMsg("15195963968", "alarm", "device");
+        return new Response();
+    }
 }

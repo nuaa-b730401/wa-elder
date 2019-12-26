@@ -1,6 +1,9 @@
 package org.nuaa.wa.waelder.vo;
 
 import lombok.Data;
+import lombok.ToString;
+
+import java.sql.Timestamp;
 
 /**
  * @Name: UserVo
@@ -10,6 +13,7 @@ import lombok.Data;
  * @Version: 1.0
  */
 @Data
+@ToString
 public class UserVo {
     private long id;
     private String phone;
@@ -17,4 +21,6 @@ public class UserVo {
     private String username;
     private String sex;
     private String address;
+    private Timestamp createTime;
+    private Timestamp updateTime;
 }

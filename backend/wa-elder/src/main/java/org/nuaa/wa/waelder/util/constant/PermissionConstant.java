@@ -13,7 +13,13 @@ public interface PermissionConstant {
 
     String TOKEN_HEADER = "user-token";
 
+    String ADMIN_TOKEN_HEADER = "admin-user-token";
+
+    String USER_INFO_HEADER = "user-id";
+
     String PERMISSION_ANON = "anon";
 
     String PERMISSION_LOGIN = "login";
+
+    String PERMISSION_ADMIN = "admin";
 }

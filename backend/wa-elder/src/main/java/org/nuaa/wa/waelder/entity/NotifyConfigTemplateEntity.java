@@ -24,9 +24,11 @@ public class NotifyConfigTemplateEntity {
     private Integer level;
     private Timestamp createTime;
     private Timestamp updateTime;
+    private String templateName;
 
     @Id
     @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public long getId() {
         return id;
     }
@@ -113,5 +115,15 @@ public class NotifyConfigTemplateEntity {
     @Override
     public int hashCode() {
         return Objects.hash(id, userId, phone, wechatId, level, createTime, updateTime);
+    }
+
+    @Basic
+    @Column(name = "template_name")
+    public String getTemplateName() {
+        return templateName;
+    }
+
+    public void setTemplateName(String templateName) {
+        this.templateName = templateName;
     }
 }

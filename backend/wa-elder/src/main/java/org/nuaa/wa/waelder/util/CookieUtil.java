@@ -13,12 +13,17 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class CookieUtil {
     public static Cookie getCookieByName(String name, HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        for (Cookie cookie : cookies) {
-            if (cookie.getName().equals(name)) {
-                return cookie;
+        try {
+            Cookie[] cookies = request.getCookies();
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals(name)) {
+                    return cookie;
+                }
             }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
+
 
         return null;
     }
@@ -27,6 +32,7 @@ public class CookieUtil {
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(maxAge);
         cookie.setPath("/");
+        cookie.setHttpOnly(false);
         response.addCookie(cookie);
     }
 }

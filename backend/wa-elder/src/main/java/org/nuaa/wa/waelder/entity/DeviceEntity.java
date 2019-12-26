@@ -23,6 +23,10 @@ public class DeviceEntity {
     private Integer deviceType;
     private Timestamp createTime;
     private Timestamp updateTime;
+    private String deviceAddress;
+    private Long templateId;
+    private Integer deviceStatus;
+    private Double confidence;
 
     @Id
     @Column(name = "id")
@@ -102,5 +106,45 @@ public class DeviceEntity {
     @Override
     public int hashCode() {
         return Objects.hash(id, userId, deviceName, deviceType, createTime, updateTime);
+    }
+
+    @Basic
+    @Column(name = "device_address")
+    public String getDeviceAddress() {
+        return deviceAddress;
+    }
+
+    public void setDeviceAddress(String deviceAddress) {
+        this.deviceAddress = deviceAddress;
+    }
+
+    @Basic
+    @Column(name = "template_id")
+    public Long getTemplateId() {
+        return templateId;
+    }
+
+    public void setTemplateId(Long templateId) {
+        this.templateId = templateId;
+    }
+
+    @Basic
+    @Column(name = "device_status")
+    public Integer getDeviceStatus() {
+        return deviceStatus;
+    }
+
+    public void setDeviceStatus(Integer deviceStatus) {
+        this.deviceStatus = deviceStatus;
+    }
+
+    @Basic
+    @Column(name = "confidence")
+    public Double getConfidence() {
+        return confidence;
+    }
+
+    public void setConfidence(Double confidence) {
+        this.confidence = confidence;
     }
 }

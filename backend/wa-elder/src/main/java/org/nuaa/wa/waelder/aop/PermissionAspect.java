@@ -48,6 +48,7 @@ public class PermissionAspect {
         if (PermissionConstant.PERMISSION_ANON.equals(permissionValue)) {
             return;
         }
+
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         Cookie[] cookies = request.getCookies();
 
@@ -72,6 +73,24 @@ public class PermissionAspect {
             throw new PermissionException("has no permission, invalid token " + token);
         }
 
+        if (PermissionConstant.PERMISSION_LOGIN.equals(permissionValue)) {
+            // user login
+        } else if (PermissionConstant.PERMISSION_ADMIN.equals(permissionValue)) {
+            // admin login
+        } else {
+            // parse permission value
+            String[] description = permissionValue.split(":");
+            if (description.length != 3) {
+                // TODO : 系统异常, 编码错误
+            }
+
+            String process = description[0];
+            String target = description[1];
+            String role = description[2];
+
+            // TODO : check target permission
+        }
+
         // TODO: check user
 
         long duration = Long.parseLong(parts[1]) - System.currentTimeMillis();
@@ -81,6 +100,10 @@ public class PermissionAspect {
 
         // refresh cookie
         targetCookie.setMaxAge(PermissionConstant.COOKIE_EXPIRE_TIME);
+        Cookie userCookie = CookieUtil.getCookieByName(PermissionConstant.USER_INFO_HEADER, request);
+        if (userCookie != null) {
+            userCookie.setMaxAge(PermissionConstant.COOKIE_EXPIRE_TIME);
+        }
     }
 
 }

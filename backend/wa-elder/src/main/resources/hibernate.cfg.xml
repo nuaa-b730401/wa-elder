@@ -6,12 +6,17 @@
   <session-factory>
     <property name="connection.url">jdbc:mysql://localhost:3306</property>
     <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
-    <mapping class="org.nuaa.wa.waelder.entity.AdminUserEntity"/>
+      <mapping class="org.nuaa.wa.waelder.entity.AdminUserEntity"/>
     <mapping class="org.nuaa.wa.waelder.entity.DeviceEntity"/>
     <mapping class="org.nuaa.wa.waelder.entity.NotifyConfigEntity"/>
     <mapping class="org.nuaa.wa.waelder.entity.NotifyConfigTemplateEntity"/>
     <mapping class="org.nuaa.wa.waelder.entity.UserEntity"/>
-    <!-- <property name="connection.username"/> -->
+      <mapping class="org.nuaa.wa.waelder.entity.DeviceLogEntity"/>
+      <mapping class="org.nuaa.wa.waelder.entity.SysLogEntity"/>
+      <mapping class="org.nuaa.wa.waelder.entity.SysAlarmEntity"/>
+      <mapping class="org.nuaa.wa.waelder.entity.SysMsgEntity"/>
+      <mapping class="org.nuaa.wa.waelder.entity.AlarmVideoEntity"/>
+      <!-- <property name="connection.username"/> -->
     <!-- <property name="connection.password"/> -->
 
     <!-- DB schema will be updated if needed -->

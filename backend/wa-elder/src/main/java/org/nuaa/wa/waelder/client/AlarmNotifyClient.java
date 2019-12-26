@@ -8,5 +8,5 @@ package org.nuaa.wa.waelder.client;
  * @Version: 1.0
  */
 public interface AlarmNotifyClient {
-    int sendAlarmMsg(String account, String msg);
+    int sendAlarmMsg(String account, String alarmId, String deviceName);
 }

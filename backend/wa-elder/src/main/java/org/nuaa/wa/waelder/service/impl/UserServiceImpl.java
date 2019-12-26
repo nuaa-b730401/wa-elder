@@ -1,12 +1,16 @@
 package org.nuaa.wa.waelder.service.impl;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.nuaa.wa.waelder.client.SmsClient;
 import org.nuaa.wa.waelder.entity.Response;
 import org.nuaa.wa.waelder.entity.UserEntity;
+import org.nuaa.wa.waelder.repository.DeviceRepository;
+import org.nuaa.wa.waelder.repository.NotifyConfigTemplateRepository;
 import org.nuaa.wa.waelder.repository.UserRepository;
 import org.nuaa.wa.waelder.service.UserService;
+import org.nuaa.wa.waelder.util.ConvertUtil;
 import org.nuaa.wa.waelder.util.CookieUtil;
 import org.nuaa.wa.waelder.util.PasswordEncryptUtil;
 import org.nuaa.wa.waelder.util.TokenGenerator;
@@ -14,6 +18,7 @@ import org.nuaa.wa.waelder.util.cache.PhoneCacheFactory;
 import org.nuaa.wa.waelder.util.constant.LogLevel;
 import org.nuaa.wa.waelder.util.constant.PermissionConstant;
 import org.nuaa.wa.waelder.util.constant.StatusConstant;
+import org.nuaa.wa.waelder.vo.UserDeviceVo;
 import org.nuaa.wa.waelder.vo.UserVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +27,8 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
+import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -42,6 +49,12 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private DeviceRepository deviceRepository;
+
+    @Autowired
+    private NotifyConfigTemplateRepository notifyConfigTemplateRepository;
+
     @Override
     public Response signInByPhoneNumber(UserEntity user, HttpServletResponse response) {
         try {
@@ -55,6 +68,7 @@ public class UserServiceImpl implements UserService {
             // 检查用户状态
             if (userInDB.getStatus() != StatusConstant.USER_NORMAL_STATUS) {
                 logger.warn("phone({}) not activate, status is {}", user.getPhone(), userInDB.getStatus());
+                return new Response(Response.SERVER_DATA_NOT_FOUND_ERROR, "user not exists");
             }
 
             // 检查密码
@@ -69,6 +83,9 @@ public class UserServiceImpl implements UserService {
             );
 
             CookieUtil.addCookie(PermissionConstant.TOKEN_HEADER, userToken,
+                    PermissionConstant.COOKIE_EXPIRE_TIME, response);
+
+            CookieUtil.addCookie(PermissionConstant.USER_INFO_HEADER, String.valueOf(user.getId()),
                     PermissionConstant.COOKIE_EXPIRE_TIME, response);
         } catch (Exception ex) {
             logger.warn("login by phone fail, phone : {}, msg : {}", user.getPhone(), ex.getMessage());
@@ -199,32 +216,130 @@ public class UserServiceImpl implements UserService {
             return new Response(Response.SERVER_DATA_NOT_FOUND_ERROR, "user not exists");
         }
 
+        return new Response<UserVo>(
+                Response.SUCCESS_CODE,
+                "get user info success",
+                ConvertUtil.convertObject(user, UserVo.class)
+        );
+    }
 
-        return null;
+    @Transactional(rollbackOn = Exception.class)
+    @Override
+    public Response updateUserInfo(UserEntity user) {
+        try {
+            userRepository.updateUserBasicInfo(
+                    user.getUsername(), user.getSex(), user.getAddress(), user.getId()
+            );
+        } catch (Exception ex) {
+            logger.warn("update user basic info {} fail, ex : {}", user.getId(), ex.getMessage());
+            return new Response(
+                    Response.SERVER_ERROR_CODE,
+                    "update user basic info fail"
+            );
+        }
+
+        return new Response(Response.SUCCESS_CODE, "update user basic info success");
+
     }
 
     @Override
     public Response getUserList(int page, int limit) {
-        return null;
+        List<UserEntity> userList = userRepository.getUserList(
+                StatusConstant.USER_NORMAL_STATUS, limit, (page - 1) * limit);
+
+        return new Response<UserVo>(
+                Response.SUCCESS_CODE,
+                "get user list success",
+                ConvertUtil.convertList(userList, UserVo.class),
+                userRepository.countByStatus(StatusConstant.USER_NORMAL_STATUS)
+        );
     }
 
     @Override
     public Response getUserLockedList(int page, int limit) {
-        return null;
+        List<UserEntity> userList = userRepository.getUserList(
+                StatusConstant.USER_LOCKED_STATUS, limit, (page - 1) * limit);
+
+        return new Response<UserVo>(
+                Response.SUCCESS_CODE,
+                "get user list success",
+                ConvertUtil.convertList(userList, UserVo.class),
+                userRepository.countByStatus(StatusConstant.USER_LOCKED_STATUS)
+        );
     }
 
     @Override
     public Response getUserUnActivatedList(int page, int limit) {
-        return null;
+        List<UserEntity> userList = userRepository.getUserList(
+                StatusConstant.USER_UNACTIVATED_STATUS, limit, (page - 1) * limit);
+
+        return new Response<UserVo>(
+                Response.SUCCESS_CODE,
+                "get user list success",
+                ConvertUtil.convertList(userList, UserVo.class),
+                userRepository.countByStatus(StatusConstant.USER_UNACTIVATED_STATUS)
+        );
     }
 
+    @Transactional(rollbackOn = Exception.class)
     @Override
     public Response lockUser(long id) {
-        return null;
+        try {
+            userRepository.updateUserStatus(StatusConstant.USER_LOCKED_STATUS, id);
+        } catch (Exception ex) {
+            logger.warn("lock user {} fail, ex : {}", id, ex.getMessage());
+            return new Response(
+                    Response.SERVER_ERROR_CODE,
+                    "lock user fail"
+            );
+        }
+
+        return new Response(Response.SUCCESS_CODE, "lock user success");
+    }
+
+    @Transactional(rollbackOn = Exception.class)
+    @Override
+    public Response unlockUser(long id) {
+        try {
+            userRepository.updateUserStatus(StatusConstant.USER_NORMAL_STATUS, id);
+        } catch (Exception ex) {
+            logger.warn("unlock user {} fail, ex : {}", id, ex.getMessage());
+            return new Response(
+                    Response.SERVER_ERROR_CODE,
+                    "unlock user fail"
+            );
+        }
+
+        return new Response(Response.SUCCESS_CODE, "unlock user success");
     }
 
     @Override
-    public Response unlockUser(long id) {
-        return null;
+    public Response addUser(UserEntity user) {
+        try {
+            Preconditions.checkNotNull(user, "invalid user ,null");
+            Preconditions.checkArgument(StringUtils.isNotEmpty(user.getPhone()), "empty user phone");
+            Preconditions.checkArgument(StringUtils.isNotEmpty(user.getUsername()), "empty user name");
+            Preconditions.checkArgument(
+                    userRepository.countByPhoneOrUsername(
+                            user.getPhone(), user.getUsername()
+                    ) <= 0,
+                    "user exists"
+            );
+            user.setUpdateTime(new Timestamp(System.currentTimeMillis()));
+            user.setStatus(StatusConstant.USER_NORMAL_STATUS);
+            userRepository.save(user);
+        } catch (Exception ex) {
+            logger.warn("add user fail, ex : {}", ex.getMessage());
+            return new Response(Response.SERVER_ERROR_CODE, "add user fail");
+        }
+        return new Response(Response.SUCCESS_CODE, "save user success");
+    }
+
+    @Override
+    public Response queryUserDeviceInfo(long userId) {
+        UserDeviceVo userDeviceVo = new UserDeviceVo();
+        userDeviceVo.setDeviceNum(deviceRepository.countByUserId(userId));
+        userDeviceVo.setConfigNum(notifyConfigTemplateRepository.countByUserId(userId));
+        return new Response<UserDeviceVo>(Response.SUCCESS_CODE, "get user device info success", userDeviceVo);
     }
 }

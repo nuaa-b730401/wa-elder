@@ -23,7 +23,7 @@ import javax.servlet.http.HttpServletResponse;
  * @Version: 1.0
  */
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 @CrossOrigin
 @Api("用户操作接口")
 public class UserController {
@@ -51,7 +51,7 @@ public class UserController {
     }
 
     @PostMapping("/update-password")
-    @Permission("login")
+//    @Permission("login")
     @ApiOperation(value = "update user password", notes = "修改密码", httpMethod = "POST")
     public Response updateUserPassword(long id, String oPass, String nPass) {
         return userService.updateUserPassword(id, oPass, nPass);
@@ -64,9 +64,17 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
+//    @Permission("login")
     @ApiOperation(value = "get user by id", notes = "获取指定用户信息", httpMethod = "GET")
     public Response getUserById(@PathVariable(value = "id") long id) {
         return userService.getUserInfo(id);
+    }
+
+    @PutMapping
+//    @Permission("login")
+    @ApiOperation(value = "update user info", notes = "更新用户信息")
+    public Response updateUser(UserEntity user) {
+        return userService.updateUserInfo(user);
     }
 
 }
